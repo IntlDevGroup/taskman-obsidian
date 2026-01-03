@@ -1,0 +1,10 @@
+{
+  "id": "taskman",
+  "name": "TaskMan",
+  "version": "0.0.1",
+  "minAppVersion": "1.5.0",
+  "description": "Global todo list with deadlines and reminders.",
+  "author": "Your Name",
+  "authorUrl": "https://github.com/YOUR-USERNAME",
+  "isDesktopOnly": false
+}

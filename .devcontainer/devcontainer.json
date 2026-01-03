@@ -1,0 +1,19 @@
+{
+  "name": "TaskMan Dev",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "taskman",
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "forwardPorts": [],
+  "postCreateCommand": "npm ci"
+}

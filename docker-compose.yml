@@ -1,0 +1,19 @@
+services:
+  taskman:
+    build: .
+    working_dir: /app
+    volumes:
+      # Mount the project source
+      - ./:/app
+      # Mount node_modules as a named volume for performance
+      - node_modules:/app/node_modules
+      # Mount the Obsidian plugin folder (set OBSIDIAN_VAULT in .env)
+      - ${OBSIDIAN_VAULT:-./.vault-placeholder}/.obsidian/plugins/taskman:/vault-plugin
+    environment:
+      - OUTDIR=/vault-plugin
+    # Keep container running
+    tty: true
+    stdin_open: true
+
+volumes:
+  node_modules:
