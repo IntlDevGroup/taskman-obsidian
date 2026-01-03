@@ -1,0 +1,75 @@
+/* TaskMan Styles */
+
+/* Task list container */
+.taskman-container {
+  padding: 8px 0;
+}
+
+/* Individual task row */
+.taskman-task {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+.taskman-task:hover {
+  background: var(--background-secondary);
+}
+
+/* Checkbox */
+.taskman-task input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Task title */
+.taskman-task-title {
+  flex: 1;
+}
+
+/* Due date badge */
+.taskman-due {
+  font-size: 0.85em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--background-secondary);
+}
+
+.taskman-due.overdue {
+  background: var(--text-error);
+  color: white;
+}
+
+.taskman-due.today {
+  background: var(--interactive-accent);
+  color: white;
+}
+
+/* File link */
+.taskman-file {
+  font-size: 0.8em;
+  opacity: 0.6;
+}
+
+.taskman-file:hover {
+  opacity: 1;
+}
+
+/* Group header */
+.taskman-group-header {
+  font-weight: 600;
+  margin-top: 12px;
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* Empty state */
+.taskman-empty {
+  opacity: 0.6;
+  font-style: italic;
+  padding: 8px;
+}

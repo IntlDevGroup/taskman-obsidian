@@ -28,35 +28,56 @@ export function stripTodoMeta(line: string): string {
 
 /**
  * Quick check if a line might be a todo (before full parsing).
+ * Supports both formats:
+ *   - [ ] todo Task 20260115   (full format)
+ *   todo Task 20260115          (simple format)
  */
 export function isTodoLineCandidate(line: string): boolean {
-  return (
-    /^- \[( |x|X)\]/.test(line) &&
-    /\btodo\b/i.test(line) &&
-    /\b\d{8}\b/.test(line)
-  );
+  const trimmed = line.trim();
+  
+  // Full format: starts with checkbox
+  if (/^- \[( |x|X)\]/.test(trimmed) && /\btodo\b/i.test(trimmed) && /\b\d{8}\b/.test(trimmed)) {
+    return true;
+  }
+  
+  // Simple format: starts with "todo"
+  if (/^todo\b/i.test(trimmed) && /\b\d{8}\b/.test(trimmed)) {
+    return true;
+  }
+  
+  return false;
 }
 
 /**
  * Parse a todo line into its components.
  * Returns null if the line doesn't match the expected format.
  *
- * Expected format: - [ ] todo Task title here 20260115
+ * Supports:
+ *   - [ ] todo Task title here 20260115  (full format)
+ *   todo Task title here 20260115         (simple format, treated as unchecked)
  */
 export function parseTodoLine(line: string): ParsedTodoLine | null {
   if (!isTodoLineCandidate(line)) return null;
 
-  const base = stripTodoMeta(line);
+  const base = stripTodoMeta(line).trim();
+  
+  let checked = false;
+  let textAfterCheckbox: string;
 
-  // Match checkbox
+  // Check if it's full format (with checkbox)
   const checkMatch = base.match(/^- \[( |x|X)\]\s+/);
-  if (!checkMatch) return null;
-
-  const checkedChar = checkMatch[1];
-  const checked = checkedChar.toLowerCase() === "x";
+  if (checkMatch) {
+    const checkedChar = checkMatch[1];
+    checked = checkedChar.toLowerCase() === "x";
+    textAfterCheckbox = base.replace(/^- \[( |x|X)\]\s+/, "").trim();
+  } else {
+    // Simple format - no checkbox, treat as unchecked
+    checked = false;
+    textAfterCheckbox = base;
+  }
 
   // Tokenize the rest
-  const tokens = base.replace(/^- \[( |x|X)\]\s+/, "").trim().split(/\s+/);
+  const tokens = textAfterCheckbox.split(/\s+/);
 
   // Find "todo" marker
   const markerIndex = tokens.findIndex((t) => t.toLowerCase() === TODO_TOKEN);

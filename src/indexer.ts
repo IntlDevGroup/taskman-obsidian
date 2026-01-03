@@ -1,4 +1,4 @@
-import { TFile } from "obsidian";
+import { TFile, Vault } from "obsidian";
 import type { App } from "obsidian";
 import type { IndexSnapshot, IndexedTask, ParseError } from "./types";
 import { fnv1a32, normalizeForMatch } from "./hash";
@@ -10,6 +10,27 @@ import {
 } from "./parser";
 import type { TaskmanCache } from "./cache";
 import { CACHE_VERSION } from "./cache";
+
+/**
+ * Convert simple format "todo X 20260115" to "- [ ] todo X 20260115"
+ */
+function normalizeToCheckboxFormat(line: string): string {
+  const trimmed = line.trim();
+  
+  // Already has checkbox
+  if (/^- \[( |x|X)\]/.test(trimmed)) {
+    return line;
+  }
+  
+  // Simple format - starts with "todo"
+  if (/^todo\b/i.test(trimmed) && /\b\d{8}\b/.test(trimmed)) {
+    // Preserve leading whitespace
+    const leadingWhitespace = line.match(/^(\s*)/)?.[1] ?? "";
+    return `${leadingWhitespace}- [ ] ${trimmed}`;
+  }
+  
+  return line;
+}
 
 function isMarkdownFile(file: TFile): boolean {
   return file.extension.toLowerCase() === "md";
@@ -161,10 +182,30 @@ export class TaskIndexer {
       return;
     }
 
-    // Full parse
+   // Full parse
     this.removeFile(file.path);
 
     const lines = content.split("\n");
+    let needsRewrite = false;
+    
+    // Check if any lines need converting to checkbox format
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const normalized = normalizeToCheckboxFormat(line);
+      if (normalized !== line) {
+        lines[i] = normalized;
+        needsRewrite = true;
+      }
+    }
+    
+    // Write back if we converted any simple format lines
+    if (needsRewrite) {
+      const newContent = lines.join("\n");
+      await this.app.vault.modify(file, newContent);
+      // Don't continue parsing - the modify will trigger another reindex
+      return;
+    }
+
     const normalizedCount = new Map<string, number>();
     const tasks: IndexedTask[] = [];
     const fileErrors: ParseError[] = [];
@@ -207,6 +248,29 @@ export class TaskIndexer {
 
     for (const t of tasks) this.addTask(t);
     for (const e of fileErrors) this.errors.push(e);
+
+    // Update cache
+    if (this.cache) {
+      this.cache.files[file.path] = {
+        path: file.path,
+        mtime: file.stat.mtime,
+        contentHash: hash,
+        tasks: tasks.map((t) => ({
+          stableId: t.stableId,
+          ephemeralId: t.ephemeralId,
+          checked: t.checked,
+          title: t.title,
+          dueRaw: t.dueRaw,
+          dueYmd: t.dueYmd,
+          lineNoHint: t.lineNoHint,
+          rawLine: t.rawLine,
+          filePath: t.filePath,
+        })),
+        errors: fileErrors,
+      };
+    }
+
+    if (fireCallback) this.onIndexChange?.();
 
     // Update cache
     if (this.cache) {

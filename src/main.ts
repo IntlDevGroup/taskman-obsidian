@@ -26,6 +26,7 @@ import {
   cleanupFiredRegistry,
   type ReminderState,
 } from "./reminders";
+import { AddTaskModal } from "./modal";
 
 type RenderedBlock = {
   container: HTMLElement;
@@ -126,8 +127,18 @@ export default class TaskManPlugin extends Plugin {
         this.rescheduleReminders();
         await this.saveAllData();
         new Notice("TaskMan: Index rebuilt");
+        
       },
     });
+    this.addCommand({
+      id: "taskman-add-todo",
+      name: "Add todo with deadline",
+      callback: () => {
+        this.showAddTaskModal();
+      },
+    });
+    
+    
 
     // Check for missed reminders on startup
     this.checkMissedReminders();
@@ -317,6 +328,7 @@ export default class TaskManPlugin extends Plugin {
       dueYmd: "2026-01-15",
       lineNoHint: 0,
       rawLine: "- [ ] todo Test Task 20260115",
+      
     };
 
     showTaskNotification(
@@ -324,5 +336,32 @@ export default class TaskManPlugin extends Plugin {
       this.settings.useSystemNotifications,
       "Test"
     );
+  }
+  private showAddTaskModal() {
+    const modal = new AddTaskModal(this.app, async (title, dueDate) => {
+      // Format: YYYYMMDD
+      const dueRaw = dueDate.replace(/-/g, "");
+      const line = `- [ ] todo ${title} ${dueRaw}`;
+      
+      // Get active file or create new one
+      let file = this.app.workspace.getActiveFile();
+      
+      if (!file) {
+        // No file open, create one
+        file = await this.app.vault.create(
+          "Tasks.md",
+          `# Tasks\n\n${line}\n`
+        );
+        await this.app.workspace.openLinkText(file.path, "", false);
+        new Notice("Created Tasks.md with your new task");
+        return;
+      }
+      
+      // Append to current file
+      const content = await this.app.vault.read(file);
+      await this.app.vault.modify(file, content + "\n" + line);
+      new Notice(`Added: ${title}`);
+    });
+    modal.open();
   }
 }
