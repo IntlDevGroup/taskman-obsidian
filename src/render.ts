@@ -68,6 +68,19 @@ function groupKey(task: IndexedTask, groupBy: TaskmanOptions["groupBy"]): string
   return "";
 }
 
+function getDueStatus(dueYmd: string): "overdue" | "today" | "upcoming" {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().split("T")[0];
+  
+  const due = new Date(dueYmd + "T00:00:00");
+  due.setHours(0, 0, 0, 0);
+
+  if (dueYmd < todayStr) return "overdue";
+  if (dueYmd === todayStr) return "today";
+  return "upcoming";
+}
+
 export function renderTaskmanBlock(args: {
   app: App;
   container: HTMLElement;
@@ -78,10 +91,7 @@ export function renderTaskmanBlock(args: {
 }) {
   const { app, container, options, snapshot, errors, onToggle } = args;
   container.empty();
-
-  const header = container.createEl("div", { text: "TaskMan" });
-  header.style.fontWeight = "600";
-  header.style.marginBottom = "8px";
+  container.addClass("taskman-container");
 
   if (options.show === "errors") {
     renderErrors(container, errors);
@@ -101,6 +111,11 @@ export function renderTaskmanBlock(args: {
 
   const sorted = sortTasks(filtered, options.sort);
 
+  if (sorted.length === 0) {
+    container.createEl("div", { text: "No tasks.", cls: "taskman-empty" });
+    return;
+  }
+
   if (options.groupBy === "none") {
     renderTaskList({ app, container, tasks: sorted, onToggle });
     return;
@@ -115,9 +130,7 @@ export function renderTaskmanBlock(args: {
   }
 
   for (const [k, list] of groups) {
-    const h = container.createEl("div", { text: k || "Tasks" });
-    h.style.marginTop = "10px";
-    h.style.fontWeight = "600";
+    container.createEl("div", { text: k || "Tasks", cls: "taskman-group-header" });
     renderTaskList({ app, container, tasks: list, onToggle });
   }
 }
@@ -147,11 +160,14 @@ function renderTaskList(args: {
   for (const t of tasks) {
     const row = container.createEl("div", { cls: "taskman-task" });
 
+<<<<<<< Updated upstream
     // Add indent
     if (t.indentLevel > 0) {
       row.style.marginLeft = `${t.indentLevel * 20}px`;
     }
 
+=======
+>>>>>>> Stashed changes
     // Checkbox
     const cb = row.createEl("input");
     cb.type = "checkbox";
@@ -180,7 +196,7 @@ function renderTaskList(args: {
 
 function renderErrors(container: HTMLElement, errors: ParseError[]) {
   if (errors.length === 0) {
-    container.createEl("div", { text: "No errors." });
+    container.createEl("div", { text: "No errors.", cls: "taskman-empty" });
     return;
   }
 
