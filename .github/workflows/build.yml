@@ -1,0 +1,42 @@
+name: Build Plugin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'manifest.json'
+      - 'styles.css'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          OUTDIR: ./dist
+
+      - name: Commit built files
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          cp dist/main.js main.js
+          cp dist/main.js.map main.js.map 2>/dev/null || true
+
+          git add main.js main.js.map manifest.json styles.css
+          git diff --staged --quiet || git commit -m "Build: $(date -u +%Y-%m-%d_%H:%M:%S)"
+          git push
