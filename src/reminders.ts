@@ -22,6 +22,7 @@ export function computeRemindersForTask(
   settings: TaskmanSettings
 ): ScheduledReminder[] {
   if (task.checked) return []; // no reminders for completed tasks
+  if (!task.dueYmd) return []; // no reminders for tasks without dates
 
   const reminders: ScheduledReminder[] = [];
   const [hours, minutes] = settings.reminderTime.split(":").map(Number);
@@ -117,7 +118,7 @@ export function showTaskNotification(
   prefix: string = ""
 ): void {
   const title = prefix ? `${prefix}: ${task.title}` : task.title;
-  const body = `Due: ${task.dueYmd}`;
+  const body = task.dueYmd ? `Due: ${task.dueYmd}` : "No due date";
 
   // Always show in-app notice
   new Notice(`📋 ${title}\n${body}`, 10000);

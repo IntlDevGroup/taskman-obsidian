@@ -13,6 +13,16 @@ export type CachedFile = {
       | "title"
       | "dueRaw"
       | "dueYmd"
+      | "completedDate"
+      | "priority"
+      | "tags"
+      | "contexts"
+      | "project"
+      | "recurrence"
+      | "estimate"
+      | "status"
+      | "waitingOn"
+      | "blockedBy"
       | "lineNoHint"
       | "rawLine"
       | "filePath"
@@ -27,4 +37,5 @@ export type TaskmanCache = {
   files: Record<string, CachedFile>;
 };
 
-export const CACHE_VERSION = 1;
+// Increment when cache format changes
+export const CACHE_VERSION = 3;

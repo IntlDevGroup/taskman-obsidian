@@ -1,75 +1,646 @@
-/* TaskMan Styles */
+/* TaskMan Plugin Styles */
 
-/* Task list container */
+/* ============ Container ============ */
 .taskman-container {
-  padding: 8px 0;
+  padding: 10px 0;
 }
 
-/* Individual task row */
+.taskman-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 10px 0;
+}
+
+/* ============ Task Rows ============ */
 .taskman-task {
   display: flex;
-  gap: 8px;
   align-items: center;
-  padding: 6px 8px;
+  gap: 8px;
+  padding: 6px 4px;
   border-radius: 4px;
-  margin: 2px 0;
+  flex-wrap: wrap;
 }
 
 .taskman-task:hover {
-  background: var(--background-secondary);
+  background: var(--background-modifier-hover);
 }
 
-/* Checkbox */
 .taskman-task input[type="checkbox"] {
-  margin: 0;
+  flex-shrink: 0;
   cursor: pointer;
 }
 
-/* Task title */
 .taskman-task-title {
-  flex: 1;
+  flex-grow: 1;
+  min-width: 100px;
 }
 
-/* Due date badge */
+.taskman-done .taskman-task-title {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.taskman-dimmed {
+  opacity: 0.6;
+}
+
+.taskman-waiting {
+  opacity: 0.8;
+}
+
+.taskman-blocked {
+  opacity: 0.7;
+  border-left: 3px solid var(--text-error);
+  padding-left: 8px;
+}
+
+/* ============ Compact Task ============ */
+.taskman-task-compact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 2px;
+  font-size: 0.9em;
+}
+
+.taskman-task-compact input[type="checkbox"] {
+  flex-shrink: 0;
+}
+
+/* ============ Priority ============ */
+.taskman-priority {
+  flex-shrink: 0;
+}
+
+.taskman-priority-3 {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ============ Status ============ */
+.taskman-status-icon {
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+/* ============ Due Dates ============ */
 .taskman-due {
   font-size: 0.85em;
   padding: 2px 6px;
   border-radius: 4px;
-  background: var(--background-secondary);
+  flex-shrink: 0;
 }
 
-.taskman-due.overdue {
-  background: var(--text-error);
-  color: white;
+.taskman-overdue {
+  background: var(--background-modifier-error);
+  color: var(--text-error);
 }
 
-.taskman-due.today {
-  background: var(--interactive-accent);
-  color: white;
+.taskman-today {
+  background: var(--background-modifier-warning);
+  color: var(--text-warning);
 }
 
-/* File link */
-.taskman-file {
+.taskman-soon {
+  background: var(--background-modifier-success-hover);
+  color: var(--text-accent);
+}
+
+.taskman-future {
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
+}
+
+.taskman-no-date {
+  background: transparent;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ============ Tags & Contexts ============ */
+.taskman-tag,
+.taskman-context,
+.taskman-project {
   font-size: 0.8em;
-  opacity: 0.6;
+  padding: 2px 6px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.taskman-tag {
+  background: var(--tag-background);
+  color: var(--tag-color);
+}
+
+.taskman-context {
+  background: hsla(210, 70%, 50%, 0.2);
+  color: var(--text-accent);
+}
+
+.taskman-project {
+  background: hsla(120, 50%, 40%, 0.2);
+  color: var(--text-success);
+  font-weight: 500;
+}
+
+/* ============ Time Estimates ============ */
+.taskman-estimate {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ============ Recurrence ============ */
+.taskman-recurrence {
+  flex-shrink: 0;
+  cursor: help;
+}
+
+/* ============ File Link ============ */
+.taskman-file {
+  font-size: 0.75em;
+  color: var(--text-faint);
+  text-decoration: none;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .taskman-file:hover {
-  opacity: 1;
+  color: var(--text-accent);
+  text-decoration: underline;
 }
 
-/* Group header */
+/* ============ Reschedule Buttons ============ */
+.taskman-reschedule {
+  display: none;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.taskman-task:hover .taskman-reschedule {
+  display: flex;
+}
+
+.taskman-reschedule-btn {
+  font-size: 0.7em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--interactive-normal);
+  border: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+}
+
+.taskman-reschedule-btn:hover {
+  background: var(--interactive-hover);
+}
+
+/* ============ Group Headers ============ */
 .taskman-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 600;
-  margin-top: 12px;
-  margin-bottom: 4px;
+  margin: 16px 0 8px;
   padding-bottom: 4px;
   border-bottom: 1px solid var(--background-modifier-border);
 }
 
-/* Empty state */
-.taskman-empty {
-  opacity: 0.6;
-  font-style: italic;
+.taskman-master-checkbox {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.taskman-section-header {
+  font-weight: 600;
+  margin: 12px 0 6px;
+  font-size: 0.95em;
+}
+
+.taskman-section-header.taskman-overdue {
+  color: var(--text-error);
+}
+
+.taskman-section-header.taskman-dimmed {
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+/* ============ Today View ============ */
+.taskman-today-header {
+  padding: 8px 0 12px;
+  font-size: 1.1em;
+}
+
+.taskman-overdue-count {
+  color: var(--text-error);
+}
+
+.taskman-time-total {
+  color: var(--text-muted);
+}
+
+.taskman-time-warning {
+  color: var(--text-warning);
+  font-weight: 600;
+}
+
+/* ============ Week View ============ */
+.taskman-week-overdue {
+  margin-bottom: 16px;
   padding: 8px;
+  background: var(--background-modifier-error);
+  border-radius: 6px;
+}
+
+.taskman-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.taskman-week-day {
+  background: var(--background-secondary);
+  border-radius: 6px;
+  padding: 8px;
+  min-height: 100px;
+}
+
+.taskman-week-today {
+  background: var(--background-modifier-success-hover);
+  border: 2px solid var(--text-accent);
+}
+
+.taskman-week-day-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.taskman-day-name {
+  font-weight: 600;
+  font-size: 0.85em;
+}
+
+.taskman-day-num {
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.taskman-empty-day {
+  color: var(--text-faint);
+  text-align: center;
+  padding-top: 10px;
+}
+
+.taskman-more {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* ============ Calendar View ============ */
+.taskman-calendar-header {
+  text-align: center;
+  padding: 8px 0 16px;
+}
+
+.taskman-calendar-title {
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.taskman-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.taskman-calendar-dayname {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.8em;
+  color: var(--text-muted);
+  padding: 4px;
+}
+
+.taskman-calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--background-secondary);
+  position: relative;
+  cursor: default;
+}
+
+.taskman-calendar-empty {
+  background: transparent;
+}
+
+.taskman-calendar-today {
+  background: var(--background-modifier-success-hover);
+  font-weight: 600;
+}
+
+.taskman-calendar-has-tasks {
+  cursor: pointer;
+}
+
+.taskman-calendar-has-tasks:hover {
+  background: var(--background-modifier-hover);
+}
+
+.taskman-calendar-date {
+  font-size: 0.9em;
+}
+
+.taskman-calendar-count {
+  font-size: 0.7em;
+  background: var(--text-accent);
+  color: var(--background-primary);
+  padding: 1px 5px;
+  border-radius: 10px;
+  position: absolute;
+  bottom: 4px;
+}
+
+/* ============ Kanban View ============ */
+.taskman-kanban {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.taskman-kanban-column {
+  background: var(--background-secondary);
+  border-radius: 8px;
+  padding: 8px;
+  min-height: 200px;
+}
+
+.taskman-kanban-done {
+  opacity: 0.7;
+}
+
+.taskman-kanban-header {
+  font-weight: 600;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.taskman-kanban-card {
+  background: var(--background-primary);
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 6px;
+  display: flex;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.taskman-kanban-card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.taskman-kanban-content {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.taskman-kanban-title {
+  font-size: 0.9em;
+  margin-bottom: 4px;
+}
+
+.taskman-kanban-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.taskman-kanban-meta .taskman-due {
+  font-size: 0.75em;
+  padding: 1px 4px;
+}
+
+.taskman-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* ============ Stats View ============ */
+.taskman-stats {
+  padding: 8px 0;
+}
+
+.taskman-stats-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.taskman-stats-card {
+  background: var(--background-secondary);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.taskman-stats-warning {
+  background: var(--background-modifier-error);
+}
+
+.taskman-stats-number {
+  font-size: 2em;
+  font-weight: 700;
+  color: var(--text-accent);
+}
+
+.taskman-stats-warning .taskman-stats-number {
+  color: var(--text-error);
+}
+
+.taskman-stats-label {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.taskman-streak {
+  padding: 12px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.1em;
+  margin-bottom: 16px;
+}
+
+.taskman-streak-best {
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+
+.taskman-stats-section {
+  margin-top: 16px;
+}
+
+.taskman-stats-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* ============ Quick Capture Modal ============ */
+.taskman-quick-capture {
+  min-width: 400px;
+}
+
+.taskman-capture-preview {
+  background: var(--background-secondary);
+  border-radius: 6px;
+  padding: 12px;
+  margin: 12px 0;
+  min-height: 60px;
+}
+
+.taskman-preview-hint {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.taskman-preview-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.taskman-preview-title {
+  font-weight: 500;
+}
+
+.taskman-preview-date,
+.taskman-preview-priority,
+.taskman-preview-tags {
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+/* ============ Template Picker ============ */
+.taskman-template-item {
+  padding: 12px;
+  margin: 4px 0;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.taskman-template-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.taskman-template-name {
+  font-weight: 600;
+}
+
+.taskman-template-count {
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+/* ============ Daily Planning Modal ============ */
+.taskman-daily-planning {
+  min-width: 450px;
+}
+
+.taskman-planning-summary {
+  margin-bottom: 16px;
+}
+
+.taskman-planning-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.taskman-planning-task {
+  display: flex;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--background-secondary);
+  border-radius: 4px;
+  margin: 4px 0;
+}
+
+.taskman-hint {
+  color: var(--text-muted);
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+/* ============ Weekly Review Modal ============ */
+.taskman-weekly-review {
+  min-width: 500px;
+}
+
+.taskman-review-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.taskman-stat-completed {
+  color: var(--text-success);
+}
+
+.taskman-stat-overdue {
+  color: var(--text-error);
+}
+
+.taskman-stat-upcoming {
+  color: var(--text-accent);
+}
+
+/* ============ Responsive ============ */
+@media (max-width: 768px) {
+  .taskman-week-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .taskman-kanban {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .taskman-stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .taskman-week-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .taskman-kanban {
+    grid-template-columns: 1fr;
+  }
+
+  .taskman-stats-cards {
+    grid-template-columns: 1fr 1fr;
+  }
 }

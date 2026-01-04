@@ -1,4 +1,4 @@
-import { TFile, Vault } from "obsidian";
+import { TFile } from "obsidian";
 import type { App } from "obsidian";
 import type { IndexSnapshot, IndexedTask, ParseError } from "./types";
 import { fnv1a32, normalizeForMatch } from "./hash";
@@ -8,12 +8,13 @@ import {
   stripTodoMeta,
   isTodoLineCandidate,
 } from "./parser";
+import { parseNaturalDate, formatDateCompact } from "./dateParser";
 import type { TaskmanCache } from "./cache";
 import { CACHE_VERSION } from "./cache";
 
 /**
- * Convert simple format "todo X 20260115" to "- [ ] X 20260115"
- * Removes the "todo" keyword from the output.
+ * Convert simple format "todo X tomorrow" to "- [ ] X 20260105"
+ * Removes the "todo" keyword and converts natural language dates to YYYYMMDD.
  */
 function normalizeToCheckboxFormat(line: string): string {
   const trimmed = line.trim();
@@ -26,11 +27,21 @@ function normalizeToCheckboxFormat(line: string): string {
   }
 
   // Simple format - starts with "todo"
-  if (/^todo\b/i.test(trimmed) && /\b\d{8}\b/.test(trimmed)) {
+  if (/^todo\s+\S/i.test(trimmed)) {
     // Preserve leading whitespace
     const leadingWhitespace = line.match(/^(\s*)/)?.[1] ?? "";
-    // Remove "todo" and convert to checkbox
+    // Remove "todo" keyword
     const withoutTodo = trimmed.replace(/^todo\s+/i, "");
+
+    // Try to parse and convert natural language date to YYYYMMDD
+    const { date, remainingText } = parseNaturalDate(withoutTodo);
+
+    if (date) {
+      const dateStr = formatDateCompact(date);
+      return `${leadingWhitespace}- [ ] ${remainingText} ${dateStr}`;
+    }
+
+    // No date found, just convert to checkbox
     return `${leadingWhitespace}- [ ] ${withoutTodo}`;
   }
 
@@ -192,7 +203,7 @@ export class TaskIndexer {
 
     const lines = content.split("\n");
     let needsRewrite = false;
-    
+
     // Check if any lines need converting to checkbox format
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -202,7 +213,7 @@ export class TaskIndexer {
         needsRewrite = true;
       }
     }
-    
+
     // Write back if we converted any simple format lines
     if (needsRewrite) {
       const newContent = lines.join("\n");
@@ -226,7 +237,7 @@ export class TaskIndexer {
           filePath: file.path,
           lineNo: i,
           line,
-          reason: "Invalid todo format or date",
+          reason: "Invalid todo format",
         });
         continue;
       }
@@ -250,6 +261,16 @@ export class TaskIndexer {
         title: parsed.title,
         dueRaw: parsed.dueRaw,
         dueYmd: parsed.dueYmd,
+        completedDate: meta?.done ?? null,
+        priority: parsed.priority,
+        tags: parsed.tags,
+        contexts: parsed.contexts,
+        project: parsed.project,
+        recurrence: parsed.recurrence,
+        estimate: parsed.estimate,
+        status: parsed.status,
+        waitingOn: parsed.waitingOn,
+        blockedBy: parsed.blockedBy,
         lineNoHint: i,
         rawLine: line,
         indentLevel,
@@ -273,6 +294,16 @@ export class TaskIndexer {
           title: t.title,
           dueRaw: t.dueRaw,
           dueYmd: t.dueYmd,
+          completedDate: t.completedDate,
+          priority: t.priority,
+          tags: t.tags,
+          contexts: t.contexts,
+          project: t.project,
+          recurrence: t.recurrence,
+          estimate: t.estimate,
+          status: t.status,
+          waitingOn: t.waitingOn,
+          blockedBy: t.blockedBy,
           lineNoHint: t.lineNoHint,
           rawLine: t.rawLine,
           filePath: t.filePath,
@@ -293,6 +324,16 @@ export class TaskIndexer {
         ...t,
         filePath: cached.path,
         indentLevel: t.indentLevel ?? 0,
+        completedDate: t.completedDate ?? null,
+        priority: t.priority ?? 0,
+        tags: t.tags ?? [],
+        contexts: t.contexts ?? [],
+        project: t.project ?? null,
+        recurrence: t.recurrence ?? null,
+        estimate: t.estimate ?? null,
+        status: t.status ?? "active",
+        waitingOn: t.waitingOn ?? null,
+        blockedBy: t.blockedBy ?? null,
       };
       this.addTask(task);
     }
