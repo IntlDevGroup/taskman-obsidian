@@ -12,23 +12,28 @@ import type { TaskmanCache } from "./cache";
 import { CACHE_VERSION } from "./cache";
 
 /**
- * Convert simple format "todo X 20260115" to "- [ ] todo X 20260115"
+ * Convert simple format "todo X 20260115" to "- [ ] X 20260115"
+ * Removes the "todo" keyword from the output.
  */
 function normalizeToCheckboxFormat(line: string): string {
   const trimmed = line.trim();
-  
-  // Already has checkbox
+
+  // Already has checkbox - check if it still has "todo" keyword to remove
   if (/^- \[( |x|X)\]/.test(trimmed)) {
-    return line;
+    // Remove "todo" keyword if present
+    const withoutTodo = line.replace(/(\- \[( |x|X)\]\s+)todo\s+/i, "$1");
+    return withoutTodo;
   }
-  
+
   // Simple format - starts with "todo"
   if (/^todo\b/i.test(trimmed) && /\b\d{8}\b/.test(trimmed)) {
     // Preserve leading whitespace
     const leadingWhitespace = line.match(/^(\s*)/)?.[1] ?? "";
-    return `${leadingWhitespace}- [ ] ${trimmed}`;
+    // Remove "todo" and convert to checkbox
+    const withoutTodo = trimmed.replace(/^todo\s+/i, "");
+    return `${leadingWhitespace}- [ ] ${withoutTodo}`;
   }
-  
+
   return line;
 }
 
@@ -232,6 +237,11 @@ export class TaskIndexer {
       normalizedCount.set(normalized, occ);
 
       const ephemeralId = `${file.path}:${fnv1a32(normalized)}:${occ}`;
+
+      // Calculate indent level (count leading spaces / 2 or tabs)
+      const leadingWhitespace = line.match(/^(\s*)/)?.[1] ?? "";
+      const indentLevel = Math.floor(leadingWhitespace.replace(/\t/g, "  ").length / 2);
+
       const task: IndexedTask = {
         stableId: meta?.id,
         ephemeralId,
@@ -242,6 +252,7 @@ export class TaskIndexer {
         dueYmd: parsed.dueYmd,
         lineNoHint: i,
         rawLine: line,
+        indentLevel,
       };
       tasks.push(task);
     }
@@ -265,29 +276,7 @@ export class TaskIndexer {
           lineNoHint: t.lineNoHint,
           rawLine: t.rawLine,
           filePath: t.filePath,
-        })),
-        errors: fileErrors,
-      };
-    }
-
-    if (fireCallback) this.onIndexChange?.();
-
-    // Update cache
-    if (this.cache) {
-      this.cache.files[file.path] = {
-        path: file.path,
-        mtime: file.stat.mtime,
-        contentHash: hash,
-        tasks: tasks.map((t) => ({
-          stableId: t.stableId,
-          ephemeralId: t.ephemeralId,
-          checked: t.checked,
-          title: t.title,
-          dueRaw: t.dueRaw,
-          dueYmd: t.dueYmd,
-          lineNoHint: t.lineNoHint,
-          rawLine: t.rawLine,
-          filePath: t.filePath,
+          indentLevel: t.indentLevel,
         })),
         errors: fileErrors,
       };
@@ -297,11 +286,14 @@ export class TaskIndexer {
   }
 
   private applyCachedFile(cached: TaskmanCache["files"][string]) {
-    // Clear existing entries for this file first
     this.removeFile(cached.path);
 
     for (const t of cached.tasks) {
-      const task: IndexedTask = { ...t, filePath: cached.path };
+      const task: IndexedTask = {
+        ...t,
+        filePath: cached.path,
+        indentLevel: t.indentLevel ?? 0,
+      };
       this.addTask(task);
     }
 

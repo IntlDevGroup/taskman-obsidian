@@ -1,7 +1,5 @@
 import type { ParsedTodoLine, TodoMeta } from "./types";
 
-const TODO_TOKEN = "todo";
-
 /**
  * Parse the hidden metadata comment from a task line.
  * Format: <!--todo:id=abc123;v=1-->
@@ -28,23 +26,24 @@ export function stripTodoMeta(line: string): string {
 
 /**
  * Quick check if a line might be a todo (before full parsing).
- * Supports both formats:
- *   - [ ] todo Task 20260115   (full format)
- *   todo Task 20260115          (simple format)
+ * Supports:
+ *   - [ ] Task 20260115           (checkbox + date)
+ *   - [ ] todo Task 20260115      (legacy with todo keyword)
+ *   todo Task 20260115             (simple format, will be converted)
  */
 export function isTodoLineCandidate(line: string): boolean {
   const trimmed = line.trim();
-  
-  // Full format: starts with checkbox
-  if (/^- \[( |x|X)\]/.test(trimmed) && /\btodo\b/i.test(trimmed) && /\b\d{8}\b/.test(trimmed)) {
+
+  // Checkbox format with 8-digit date at end
+  if (/^- \[( |x|X)\]/.test(trimmed) && /\b\d{8}\b/.test(trimmed)) {
     return true;
   }
-  
+
   // Simple format: starts with "todo"
   if (/^todo\b/i.test(trimmed) && /\b\d{8}\b/.test(trimmed)) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -53,18 +52,19 @@ export function isTodoLineCandidate(line: string): boolean {
  * Returns null if the line doesn't match the expected format.
  *
  * Supports:
- *   - [ ] todo Task title here 20260115  (full format)
- *   todo Task title here 20260115         (simple format, treated as unchecked)
+ *   - [ ] Task title here 20260115       (standard)
+ *   - [ ] todo Task title here 20260115  (legacy)
+ *   todo Task title here 20260115         (simple, will be converted)
  */
 export function parseTodoLine(line: string): ParsedTodoLine | null {
   if (!isTodoLineCandidate(line)) return null;
 
   const base = stripTodoMeta(line).trim();
-  
+
   let checked = false;
   let textAfterCheckbox: string;
 
-  // Check if it's full format (with checkbox)
+  // Check if it's checkbox format
   const checkMatch = base.match(/^- \[( |x|X)\]\s+/);
   if (checkMatch) {
     const checkedChar = checkMatch[1];
@@ -76,12 +76,11 @@ export function parseTodoLine(line: string): ParsedTodoLine | null {
     textAfterCheckbox = base;
   }
 
+  // Remove "todo" keyword if present at start
+  textAfterCheckbox = textAfterCheckbox.replace(/^todo\s+/i, "");
+
   // Tokenize the rest
   const tokens = textAfterCheckbox.split(/\s+/);
-
-  // Find "todo" marker
-  const markerIndex = tokens.findIndex((t) => t.toLowerCase() === TODO_TOKEN);
-  if (markerIndex === -1) return null;
 
   // Find last 8-digit token as due date
   let dateIndex = -1;
@@ -96,14 +95,14 @@ export function parseTodoLine(line: string): ParsedTodoLine | null {
   const dueRaw = tokens[dateIndex];
   if (!isValidYmdCompact(dueRaw)) return null;
 
-  // Title is everything between "todo" and the date
-  const titleTokens = tokens.slice(markerIndex + 1, dateIndex);
+  // Title is everything before the date
+  const titleTokens = tokens.slice(0, dateIndex);
   const title = titleTokens.join(" ").trim();
   if (!title) return null;
 
   const dueYmd = `${dueRaw.slice(0, 4)}-${dueRaw.slice(4, 6)}-${dueRaw.slice(6, 8)}`;
 
-  return { checked, title, dueRaw, dueYmd, markerIndex, dateIndex };
+  return { checked, title, dueRaw, dueYmd, markerIndex: -1, dateIndex };
 }
 
 /**

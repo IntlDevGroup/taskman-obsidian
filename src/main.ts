@@ -327,8 +327,8 @@ export default class TaskManPlugin extends Plugin {
       dueRaw: "20260115",
       dueYmd: "2026-01-15",
       lineNoHint: 0,
-      rawLine: "- [ ] todo Test Task 20260115",
-      
+      rawLine: "- [ ] Test Task 20260115",
+      indentLevel: 0,
     };
 
     showTaskNotification(
@@ -341,7 +341,7 @@ export default class TaskManPlugin extends Plugin {
     const modal = new AddTaskModal(this.app, async (title, dueDate) => {
       // Format: YYYYMMDD
       const dueRaw = dueDate.replace(/-/g, "");
-      const line = `- [ ] todo ${title} ${dueRaw}`;
+      const line = `- [ ] ${title} ${dueRaw}`;
       
       // Get active file or create new one
       let file = this.app.workspace.getActiveFile();

@@ -20,7 +20,8 @@ function toggleCheckbox(line: string): string {
 }
 
 function isTodoLine(line: string): boolean {
-  return /^- \[( |x|X)\]\s+.*\btodo\b/i.test(line) && /\b\d{8}\b/.test(line);
+  // Checkbox with 8-digit date (with or without "todo" keyword)
+  return /^- \[( |x|X)\]\s+/.test(line) && /\b\d{8}\b/.test(line);
 }
 
 function findByStableId(lines: string[], stableId: string): number {

@@ -16,6 +16,7 @@ export type CachedFile = {
       | "lineNoHint"
       | "rawLine"
       | "filePath"
+      | "indentLevel"
     >
   >;
   errors: ParseError[];

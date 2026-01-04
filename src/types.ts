@@ -16,8 +16,8 @@ export type TodoMeta = {
 
 export type IndexedTask = {
   // Identity
-  stableId?: string; // from comment
-  ephemeralId: string; // filePath + hash(normalizedLine) + occurrenceIndex
+  stableId?: string;
+  ephemeralId: string;
   filePath: string;
 
   // Display + behavior
@@ -26,9 +26,12 @@ export type IndexedTask = {
   dueRaw: string;
   dueYmd: string;
 
-  // Source tracking (non-identity hints)
+  // Source tracking
   lineNoHint: number;
   rawLine: string;
+
+  // Nesting
+  indentLevel: number;
 };
 
 export type IndexSnapshot = {

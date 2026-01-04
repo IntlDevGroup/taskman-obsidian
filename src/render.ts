@@ -122,6 +122,20 @@ export function renderTaskmanBlock(args: {
   }
 }
 
+function getDueStatus(dueYmd: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(dueYmd);
+  due.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) return "taskman-overdue";
+  if (diffDays === 0) return "taskman-today";
+  if (diffDays <= 3) return "taskman-soon";
+  return "taskman-future";
+}
+
 function renderTaskList(args: {
   app: App;
   container: HTMLElement;
@@ -130,39 +144,33 @@ function renderTaskList(args: {
 }) {
   const { app, container, tasks, onToggle } = args;
 
-  if (tasks.length === 0) {
-    container.createEl("div", { text: "No tasks." });
-    return;
-  }
-
-  const ul = container.createEl("ul");
-  ul.style.listStyle = "none";
-  ul.style.paddingLeft = "0";
-
   for (const t of tasks) {
-    const li = ul.createEl("li");
-    li.style.display = "flex";
-    li.style.gap = "8px";
-    li.style.alignItems = "center";
-    li.style.padding = "4px 0";
+    const row = container.createEl("div", { cls: "taskman-task" });
 
-    const cb = li.createEl("input");
+    // Add indent
+    if (t.indentLevel > 0) {
+      row.style.marginLeft = `${t.indentLevel * 20}px`;
+    }
+
+    // Checkbox
+    const cb = row.createEl("input");
     cb.type = "checkbox";
     cb.checked = t.checked;
     cb.addEventListener("change", () => onToggle(t));
 
-    const text = li.createEl("span", { text: `${t.title} (${t.dueYmd})` });
-    text.style.flex = "1";
+    // Title
+    row.createEl("span", { text: t.title, cls: "taskman-task-title" });
 
-    const link = li.createEl("a", { text: t.filePath, cls: "internal-link" });
-    link.style.opacity = "0.7";
-    link.style.fontSize = "0.9em";
-    link.style.cursor = "pointer";
+    // Due date with status
+    const status = getDueStatus(t.dueYmd);
+    const dueEl = row.createEl("span", { text: t.dueYmd, cls: "taskman-due" });
+    dueEl.addClass(status);
+
+    // File link
+    const link = row.createEl("a", { text: t.filePath, cls: "taskman-file internal-link" });
     link.href = "#";
-
     link.addEventListener("click", (e) => {
       e.preventDefault();
-      // Open the source file at the task's line
       (app.workspace as any).openLinkText("", t.filePath, false, {
         eState: { line: t.lineNoHint },
       });
